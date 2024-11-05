@@ -1,6 +1,6 @@
-#import Pkg;
-#Pkg.add("FuzzyLogic");
-#Pkg.add("Dictionaries");
+import Pkg;
+Pkg.add("FuzzyLogic");
+Pkg.add("Dictionaries");
 
 using FuzzyLogic
 using Dictionaries
