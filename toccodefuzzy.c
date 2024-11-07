@@ -13,7 +13,7 @@ double trap(double x, double a, double b, double c, double d) {
     return 0.0;
 }
 
-double sugeno_fuzzy_system(double service, double food) {
+double tipper(double service, double food) {
     // Fuzzification
     double service_poor = gauss(service, 0, 1.5);
     double service_good = gauss(service, 5, 1.5);
@@ -46,7 +46,7 @@ int main() {
     printf("Enter the number of %s:", "food");// 做字符串插入
     scanf("%lf", &food);
 
-    double tip = sugeno_fuzzy_system(service, food);
+    double tip = tipper(service, food);
     printf("Suggested tip: %lf\n", tip);
 
     return 0;
