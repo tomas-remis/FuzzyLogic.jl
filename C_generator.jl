@@ -1,3 +1,4 @@
+#import all required libraies
 import Pkg;
 Pkg.add("FuzzyLogic");
 Pkg.add("Dictionaries");
@@ -6,6 +7,10 @@ using FuzzyLogic
 using Dictionaries
 import FuzzyLogic: FuzzyOr, FuzzyAnd, FuzzyRelation, FuzzyNegation, FuzzyRule
 
+#=
+Fuzzylogic.jl standard format, input parameter for the fuzzylogic system,
+Method of calling the function: fis(service=2, food=3)
+=#
 fis = @sugfis function tipper(service, food)::tip
     service := begin
         domain = 0:10
@@ -32,7 +37,7 @@ fis = @sugfis function tipper(service, food)::tip
     service == excellent || food == delicious --> tip == generous
 end
 
-# Membership function expression, need to add more
+# Membership function expression for C code, need to add more
 function to_c(mf::GaussianMF)
     """
     double GaussianMF(double x, double mean, double sigma) {
@@ -53,7 +58,7 @@ function to_c(mf::TrapezoidalMF)
     """
 end
 
-#Generate membership function
+#Generate membership function which is used in code
 function generate_mf_definitions(fis::SugenoFuzzySystem)
     visited = DataType[]
     res = ""
@@ -194,4 +199,6 @@ function generate_tip(fis::SugenoFuzzySystem)
     return res
 end
 
-print(generate_tip(fis))
+c_code = generate_tip(fis)
+print(c_code)
+write("c_code.c", c_code)
