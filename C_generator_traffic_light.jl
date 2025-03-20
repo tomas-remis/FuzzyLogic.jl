@@ -12,33 +12,52 @@ using Plots
 Fuzzylogic.jl standard format, input parameter for the fuzzylogic system,
 Method of calling the function: fis(service=2, food=3)
 =#
-fis = @sugfis function tipper(service, food)::tip
-    service := begin
+
+fis = @sugfis function traffic_light(queue, density, waiting_T)::green_T
+    # Vehicle queue length (unit: meters)
+    queue := begin
+        domain = 0:100
+        short = GaussianMF(0.0, 25.0)      # Short queue (0-50 meters)
+        medium = GaussianMF(50.0, 30.0)    # Medium queue (20-80 meters)
+        long = GaussianMF(100.0, 35.0)     # Long queue (60-100 meters)
+    end
+
+    # Pedestrian density (unit: people per square meter)
+    density := begin
         domain = 0:10
-        poor = GaussianMF(0.0, 1.5)
-        good = GaussianMF(5.0, 1.5)
-        excellent = GaussianMF(10.0, 1.5)
+        low = TrapezoidalMF(-1, 0, 2, 4)   # Low density (0-4 people/m²)
+        medium = TrapezoidalMF(3, 4, 6, 7) # Medium density (4-7 people/m²)
+        high = TrapezoidalMF(6, 8, 10, 11) # High density (8-10 people/m²)
     end
 
-    food := begin
-        domain = 0:10
-        rancid = TrapezoidalMF(-2, 0, 1, 3)
-        delicious = TrapezoidalMF(7, 9, 10, 12)
+    # Pedestrian waiting time (unit: seconds)
+    waiting_T := begin
+        domain = 0:60
+        short = TrapezoidalMF(-5, 0, 10, 20)  # Short wait (0-20 seconds)
+        medium = TrapezoidalMF(15, 25, 35, 45) # Medium wait (20-45 seconds)
+        long = TrapezoidalMF(40, 50, 60, 65)   # Long wait (50-60 seconds)
     end
 
-    tip := begin
-        domain = 0:30
-        cheap = 5.002
-        average = 15
-        generous = 2service, 0.5food, 5.0
+    # Vehicle green light duration (unit: seconds)
+    green_T := begin
+        domain = 0:60
+        short = 10
+        normal = 30
+        long = 2queue, -0.5density, 1.5waiting_T, 15.0
     end
 
-    service == poor || food == rancid --> tip == cheap
-    service == good --> tip == average
-    service == excellent || food == delicious --> tip == generous
+    # 4 optimized fuzzy rules
+    queue == long || density == low --> green_T == long
+    queue == short && density == high --> green_T == short
+    queue == medium && density == medium && waiting_T == medium --> green_T == normal
+    waiting_T == long || queue == short --> green_T == short
 end
 
-plot(fis)
+# get the handle of Plots.plot
+p = plot(fis)
+
+# save p as PNG image format
+savefig(p, "plot.png")
 
 # Membership function expression for C code, need to add more
 function to_c(mf::GaussianMF)
@@ -155,10 +174,11 @@ end
 
 function generate_outputs(fis::SugenoFuzzySystem)
     rule_out = ""
-    for (var_name, var) in pairs(fis.outputs)
-        i = 1
-        for (mf_name, mf) in pairs(var.mfs)
-            rule_return = generate_rule_expression(mf)
+    i = 1
+    for rule in fis.rules
+        var_name = rule.consequent[1].prop
+        for (var_na, var) in pairs(fis.outputs)
+            rule_return = generate_rule_expression(var.mfs[var_name])
             rule_out *= "\tdouble r$(i)_out = $rule_return;\n"
             i = i + 1
         end
@@ -169,19 +189,17 @@ end
 #Generate Weighted average calculation
 function generate_calculation(fis::SugenoFuzzySystem)
     calculation = ""
-    for (var_name, var) in pairs(fis.outputs)
-        calculation *= "\tdouble numerator = "
-        calculation *= join(
-            ["(rule$idx * r$(idx)_out)"
-             for (idx, (mf_name, mf)) in enumerate(pairs(var.mfs))],
-            " + ")
-        calculation *= ";\n"
-        calculation *= "\tdouble denominator = "
-        calculation *= join(
-            ["rule$idx" for (idx, (mf_name, mf)) in enumerate(pairs(var.mfs))], " + ")
-        calculation *= ";\n\n"
-        calculation *= "\treturn numerator / denominator;\n"
-    end
+    calculation *= "\tdouble numerator = "
+    calculation *= join(
+        ["(rule$rule_idx * r$(rule_idx)_out)"
+         for (rule_idx, rule) in enumerate(fis.rules)],
+        " + ")
+    calculation *= ";\n"
+    calculation *= "\tdouble denominator = "
+    calculation *= join(
+        ["rule$rule_idx" for (rule_idx, rule) in enumerate(fis.rules)], " + ")
+    calculation *= ";\n\n"
+    calculation *= "\treturn numerator / denominator;\n"
     return calculation * "\n"
 end
 
@@ -205,9 +223,3 @@ end
 c_code = generate_tip(fis)
 print(c_code)
 write("c_code.c", c_code)
-
-# get the handle of Plots.plot
-p = plot(fis)
-
-# save p as PNG image format
-savefig(p, "plot.png")
