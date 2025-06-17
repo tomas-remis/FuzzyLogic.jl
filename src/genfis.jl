@@ -16,7 +16,7 @@ Performs fuzzy clustering on th data `X` using `N` clusters.
 
 - `C` -- ``d × N``matrix of centers, each column is the center of a cluster.
 - `U` -- ``M × N`` matrix of membership degrees, `Uᵢⱼ`` tells has the membership degree of
-         the ``j``th point to the ``i``th cluster.
+         the ``i``th point to the ``j``th cluster.
 """
 function fuzzy_cmeans(X::Matrix{T}, N::Int; m = 2.0, maxiter = 100,
                       tol = 1e-5) where {T <: Real}
