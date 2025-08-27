@@ -87,6 +87,7 @@ function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
 
     α > 1 || throw(ArgumentError("α must be greater than 1"))
     size(ρ, 1) == C || throw(ArgumentError("length of ρ must equal to C"))
+    γ >= 0 && γ <= 1 || throw(ArgumentError("γ must be within the range [0, 1]"))
 
     N = size(X, 2)
     d = size(X, 1)
@@ -99,7 +100,7 @@ function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
     
     V = Matrix{Float64}(undef, d, C)
 
-    for iter in 1:maxiter
+    @inbounds for iter in 1:maxiter
         pow_W = W .^ α
         W_sum = sum(pow_W, dims=1)
         V .= (X * pow_W) ./ W_sum
