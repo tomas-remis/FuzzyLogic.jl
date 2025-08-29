@@ -55,9 +55,6 @@ function fuzzy_cmeans(X::Matrix{T}, N::Int; m = 2.0, maxiter = 100,
     return C, U
 end
 
-
-using LinearAlgebra, Statistics
-
 """
 Performs fuzzy clustering on the data `X` using `C` clusters.
 
@@ -96,9 +93,9 @@ function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
     distances = zeros(N, C)
     e = 2 / (α - 1)
     J = Inf
-    P0_det = stabilize ? det(cov(X')) ^(1/d) : 0
+    P0_det = stabilize ? det(cov(X')) ^(1/d) : zero(float(T))
     
-    V = Matrix{Float64}(undef, d, C)
+    V = Matrix{float(T)}(undef, d, C)
 
     @inbounds for iter in 1:maxiter
         pow_W = W .^ α
@@ -106,7 +103,7 @@ function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
         V .= (X * pow_W) ./ W_sum
         for (i, vi) in enumerate(eachcol(V))
             P = zeros(d, d)
-            for(j, xj) in enumerate(eachcol(X))
+            for (j, xj) in enumerate(eachcol(X))
                 sub = xj - vi
                 P += pow_W[j, i] .* sub * sub'
             end
@@ -115,7 +112,7 @@ function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
             stabilize && _recalculate_cov_matrix(P, γ, β, P0_det)
             A = (ρ[i] * det(P))^(1/d) * inv(P)
 
-            for(j, xj) in enumerate(eachcol(X))
+            for (j, xj) in enumerate(eachcol(X))
                 sub = xj - vi
                 distances[j, i] = sub' * A * sub
             end

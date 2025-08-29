@@ -1,6 +1,6 @@
 module FuzzyLogic
 
-using Dictionaries, Reexport
+using Dictionaries, Reexport, LinearAlgebra, Statistics
 
 include("docstrings.jl")
 include("intervals.jl")

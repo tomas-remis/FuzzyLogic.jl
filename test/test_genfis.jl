@@ -1,4 +1,4 @@
-using FuzzyLogic, Distributions, Random, Test, LinearAlgebra
+using FuzzyLogic, Distributions, Random, Test
 
 function generate_cluster(μ::Vector{Float64}, σ::Matrix{Float64}, n::Int)
     dist = MvNormal(μ, σ)
