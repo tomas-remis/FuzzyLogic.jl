@@ -1,3 +1,4 @@
+
 """
 Performs fuzzy clustering on th data `X` using `N` clusters.
 
@@ -79,7 +80,7 @@ Performs fuzzy clustering on the data `X` using `C` clusters.
 - `W` -- ``N × C`` matrix of membership degrees, ``Wᵢⱼ`` tells has the membership degree of
          the ``i``th point to the ``j``th cluster.
 """
-function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C), 
+function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
     maxiter=100, tol=1e-5, stabilize=true, γ=0.1, β=10^15) where {T <: Real}
 
     α > 1 || throw(ArgumentError("α must be greater than 1"))
@@ -94,7 +95,7 @@ function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
     e = 2 / (α - 1)
     J = Inf
     P0_det = stabilize ? det(cov(X')) ^(1/d) : zero(float(T))
-    
+
     V = Matrix{float(T)}(undef, d, C)
 
     @inbounds for iter in 1:maxiter
@@ -107,7 +108,7 @@ function gustafson_kessel(X::Matrix{T}, C::Int; α=2.0, ρ = ones(C),
                 sub = xj - vi
                 P += pow_W[j, i] .* sub * sub'
             end
-            
+
             P ./= W_sum[1, i]
             stabilize && _recalculate_cov_matrix(P, γ, β, P0_det)
             A = (ρ[i] * det(P))^(1/d) * inv(P)
@@ -149,7 +150,7 @@ function _recalculate_cov_matrix(P::Matrix{Float64}, γ::Number,
     eig_vals = eig.values
     max_val = maximum(eig_vals)
 
-    eig_vals[max_val ./ eig_vals .> β] .= max_val / β 
+    eig_vals[max_val ./ eig_vals .> β] .= max_val / β
 
     P .= eig.vectors * diagm(eig_vals) * eig.vectors'
 end

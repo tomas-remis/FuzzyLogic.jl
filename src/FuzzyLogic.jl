@@ -28,7 +28,7 @@ export DifferenceSigmoidMF, LinearMF, GeneralizedBellMF, GaussianMF, ProductSigm
        KarnikMendelDefuzzifier, EKMDefuzzifier, IASCDefuzzifier, EIASCDefuzzifier,
        @mamfis, MamdaniFuzzySystem, @sugfis, SugenoFuzzySystem, set,
        LinearSugenoOutput, ConstantSugenoOutput,
-       fuzzy_cmeans,
+       fuzzy_cmeans, gustafson_kessel,
        compilefis,
        readfis
 

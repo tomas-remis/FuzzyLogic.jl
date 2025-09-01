@@ -1,8 +1,7 @@
-using FuzzyLogic, Distributions, Random, Test
+using FuzzyLogic, Random, LinearAlgebra, Test
 
 function generate_cluster(μ::Vector{Float64}, σ::Matrix{Float64}, n::Int)
-    dist = MvNormal(μ, σ)
-    return rand(dist, n)
+    return cholesky(Symmetric(σ)).L * randn(2, n) .+ μ
 end
 
 @testset "fuzzy c-means" begin
@@ -22,9 +21,9 @@ end
     θ = π / 4
     U = [cos(θ) -sin(θ); sin(θ) cos(θ)]
     D = Diagonal([5, 0.25])
-    
+
     Σ = U * D * U'
-    
+
     X2 = generate_cluster(fill(0.0, 2), Σ, 300)
     X3 = generate_cluster(-μ1, diagm(fill(0.5, 2)), 200)
     X4 = generate_cluster(μ2, diagm(fill(0.1, 2)), 200)
@@ -32,11 +31,11 @@ end
     X = hcat(X1, X2, X3, X4)
 
     Random.seed!()
-    (C, U) = gustafson_kessel(X, 4; α=2)
+    (C, U) = gustafson_kessel(X, 4; α = 2)
 
-    @test sortslices(C, dims=2)≈[-1.98861 -0.08146 2.00787 5.94698; 1.04687 -0.03456 -0.95882 3.02226] atol=1e-3
-    @test_throws ArgumentError gustafson_kessel(X, 4; α=1)
-    @test_throws ArgumentError gustafson_kessel(X, 4; ρ=[1, 1, 1])
-    @test_throws ArgumentError gustafson_kessel(X, 4, γ=2)
-
+    @test sortslices(
+        C, dims = 2)≈[-1.98861 -0.08146 2.00787 5.94698; 1.04687 -0.03456 -0.95882 3.02226] atol=1e-3
+    @test_throws ArgumentError gustafson_kessel(X, 4; α = 1)
+    @test_throws ArgumentError gustafson_kessel(X, 4; ρ = [1, 1, 1])
+    @test_throws ArgumentError gustafson_kessel(X, 4, γ = 2)
 end
